@@ -1,0 +1,68 @@
+{
+    "common": {
+        "home": "Home",
+        "projects": "Projects",
+        "about": "About Us",
+        "contact": "Contact Us",
+        "services": "Our Services",
+        "readMore": "Read More",
+        "viewDetails": "View Details",
+        "contactUs": "Contact Us",
+        "allRightsReserved": "All Rights Reserved",
+        "loading": "Loading...",
+        "error": "An error occurred",
+        "backToHome": "Back to Home"
+    },
+    "header": {
+        "companyName": "Alzamiliah",
+        "switchLanguage": "العربية"
+    },
+    "hero": {
+        "title": "Over 35 Years of Real Estate Expertise",
+        "subtitle": "Building the future with past experience and present innovation"
+    },
+    "projects": {
+        "title": "Our Projects",
+        "subtitle": "Discover our distinguished real estate projects",
+        "buildings": "Buildings",
+        "units": "Units",
+        "noProjects": "No projects available at this time"
+    },
+    "projectDetails": {
+        "title": "Project Details",
+        "location": "Location",
+        "status": "Status",
+        "buildings": "Number of Buildings",
+        "units": "Number of Units",
+        "features": "Features",
+        "virtualTour": "Virtual Tour",
+        "downloadBrochure": "Download Brochure",
+        "notFound": "Project not found",
+        "returnToProjects": "Return to Projects"
+    },
+    "status": {
+        "available": "Available for Sale",
+        "soon": "Coming Soon",
+        "construction": "Under Construction",
+        "sold": "Sold"
+    },
+    "about": {
+        "title": "About Us",
+        "subtitle": "Alzamiliah for Real Estate Development and Investment",
+        "description": "A leading company in real estate development in the Kingdom of Saudi Arabia"
+    },
+    "contact": {
+        "title": "Contact Us",
+        "name": "Name",
+        "email": "Email",
+        "phone": "Phone Number",
+        "message": "Message",
+        "send": "Send",
+        "sending": "Sending...",
+        "success": "Your message has been sent successfully",
+        "error": "An error occurred while sending your message"
+    },
+    "footer": {
+        "rights": "© 2024 Alzamiliah for Real Estate Development and Investment. All Rights Reserved."
+    }
+}

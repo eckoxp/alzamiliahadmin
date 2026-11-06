@@ -1,0 +1,304 @@
+// Prisma Schema for Alzamiliah Website
+// Database: Neon PostgreSQL
+
+
+enum ContactMethod {
+  PHONE
+  WHATSAPP
+  EMAIL
+}
+
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  password  String
+  name      String
+  role      String   @default("admin")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("users")
+}
+
+model Project {
+  id              Int           @id @default(autoincrement())
+  nameAr          String        @map("name_ar")
+  nameEn          String?       @map("name_en")
+  type            String?
+  descriptionAr   String?       @map("description_ar") @db.Text
+  descriptionEn   String?       @map("description_en") @db.Text
+  excerptAr       String?       @map("excerpt_ar") @db.Text
+  excerptEn       String?       @map("excerpt_en") @db.Text
+  image           String?
+  image2          String?
+  image3          String?
+  image4          String?
+  image5          String?
+  image6          String?
+  buildingsCount  Int?          @map("buildings_count")
+  unitsCount      Int?          @map("units_count")
+  elevatorsCount  Int?          @map("elevators_count")
+  sortOrder       Int           @default(0) @map("sort_order")
+  locationAr      String?       @map("location_ar")
+  locationEn      String?       @map("location_en")
+  address         String?
+  linkLocation    String?       @map("link_location")
+  linkProject     String?       @map("link_project")
+  linkMap         String?       @map("link_map")
+  video           String?
+  livePreview     String?       @map("live_preview")
+  city            String?
+  lat             Float?
+  lng             Float?
+  status          Int           @default(1)
+  statusApartment Int           @default(1) @map("status_apartment")
+  availability    Int           @default(1)
+  isFeatured      Int           @default(0) @map("is_featured")
+  elec            Int           @default(0)
+  devices         Int           @default(0)
+  elevator        Int           @default(0)
+  air             Int           @default(0)
+  plumber         Int           @default(0)
+  house           Int           @default(0)
+  highQuality     Int           @default(0) @map("high_quality")
+  smartEntry      Int           @default(0) @map("smart_entry")
+  fireSensor      Int           @default(0) @map("fire_sensor")
+  icon3d          String?       @map("icon_3d")
+  iconFollow      String?       @map("icon_follow")
+  buildYear       String?       @map("build_year")
+  sqFit           String?       @map("sq_fit")
+   projectFile         String?  @map("project_file")
+  projectFileTitleAr   String? @map("project_file_title_ar")
+  projectFileTitleEn   String? @map("project_file_title_en")
+  projectFile2         String? @map("project_file2")
+  projectFile2TitleAr  String? @map("project_file2_title_ar")
+  projectFile2TitleEn  String? @map("project_file2_title_en")
+  projectFile3         String? @map("project_file3")
+  projectFile3TitleAr  String? @map("project_file3_title_ar")
+  projectFile3TitleEn  String? @map("project_file3_title_en")
+  apartments      Apartment[]
+  galleryImages   ProjectImage[]
+  createdAt       DateTime      @default(now()) @map("created_at")
+  updatedAt       DateTime      @updatedAt @map("updated_at")
+  qrCodeLeads QrCodeLeadProject[]
+
+  // Google Sheet sync
+  sheetUrl          String?   @map("sheet_url")
+  sheetTabName      String?   @map("sheet_tab_name")
+  sheetLastSyncedAt DateTime? @map("sheet_last_synced_at")
+  sheetSyncStatus   String?   @default("idle") @map("sheet_sync_status") // idle | syncing | success | error
+  sheetSyncError    String?   @map("sheet_sync_error") @db.Text
+  sheetLastSummary  String?   @map("sheet_last_summary") // e.g. "created: 2, updated: 5, deleted: 1"
+
+
+  externalProjectId String?   @unique @map("external_project_id")
+  lastSyncedAt      DateTime? @map("last_synced_at")
+
+  monthlyData    ProjectMonthlyData[]
+  phases         ProjectPhase[]
+  timelapseItems ProjectTimelapseItem[]
+  @@map("projects")
+}
+
+model Apartment {
+  id              Int      @id @default(autoincrement())
+  project         Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  projectId       Int      @map("project_id")
+  unitCode   String?  @map("unit_code")
+  buildingName    String?  @map("building_name")
+  floor           String?
+  area            Float?
+  buildingArea    Float?   @map("building_area")
+  roofArea        Float?   @map("roof_area")
+  bedrooms        Int?
+  bathrooms       Int?
+  maidBathroom    Int?     @map("maid_bathroom")
+  price           Float?
+  status          String   @default("available")
+ type            String   @default("شقة")
+  image           String?
+  maidRoom        Int?     @default(0) @map("maid_room")
+  balcony         Int?     @default(0)
+  parking         Int?     @default(0)
+  storage         Int?     @default(0)
+  laundry         Int?     @default(0)
+  direction       String?
+  view            String?
+  source          String   @default("manual") // "manual" | "sheet" - controls sync delete safety
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  @@unique([projectId, unitCode])
+  @@map("apartments")
+}
+
+model ContactRequest {
+  id        Int      @id @default(autoincrement())
+  name      String
+  email     String
+  phone     String?
+  message   String   @db.Text
+  projectId Int?     @map("project_id")
+  status    String   @default("new")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("contact_requests")
+}
+
+model QrCodeLead {
+  id            Int                 @id @default(autoincrement())
+  name          String
+  email         String
+  phone         String
+  contactMethod ContactMethod       @map("contact_method")
+  status        String              @default("new")
+  createdAt     DateTime            @default(now()) @map("created_at")
+  projects      QrCodeLeadProject[]
+
+  @@map("qr_code_leads")
+}
+
+model QrCodeLeadProject {
+  id        Int        @id @default(autoincrement())
+  leadId    Int        @map("lead_id")
+  projectId Int        @map("project_id")
+  lead      QrCodeLead @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  project   Project    @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@unique([leadId, projectId])
+  @@map("qr_code_lead_projects")
+}
+
+
+model Visitor {
+  id         Int       @id @default(autoincrement())
+  ip         String?
+  country    String?
+  city       String?
+  userAgent  String?   @map("user_agent")
+  page       String?
+  visitorKey String?   @map("visitor_key")
+  visitDate  DateTime? @map("visit_date") @db.Date
+  createdAt  DateTime  @default(now()) @map("created_at")
+
+  @@unique([visitorKey, visitDate])
+  @@index([visitDate, country])
+  @@map("visitors")
+}
+
+model PageView {
+  id         Int      @id @default(autoincrement())
+  visitorKey String   @map("visitor_key")
+  path       String
+  projectId  Int?     @map("project_id")
+  viewDate   DateTime @map("view_date") @db.Date
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  @@unique([visitorKey, path, viewDate])
+  @@index([viewDate, path])
+  @@index([projectId])
+  @@map("page_views")
+}
+
+model ProjectImage {
+  id        Int     @id @default(autoincrement())
+  projectId Int     @map("project_id")
+  url       String
+  sortOrder Int     @default(0) @map("sort_order")
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@map("project_images")
+}
+
+model ContentPage {
+  id        Int      @id @default(autoincrement())
+  slug      String   @unique
+  titleAr   String   @map("title_ar")
+  titleEn   String   @map("title_en")
+  contentAr String   @map("content_ar") @db.Text
+  contentEn String   @map("content_en") @db.Text
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("content_pages")
+}
+
+
+
+
+enum ProjectDataSource {
+  COLORIDEA
+  MANUAL
+}
+
+model ProjectMonthlyData {
+  id                Int               @id @default(autoincrement())
+  projectId         Int               @map("project_id")
+  month             String            @db.VarChar(7) // "2025-09"
+  source            ProjectDataSource
+  externalProjectId String?           @map("external_project_id") // مشروع ColorIdea اللي جه منه (فاضي في اليدوي)
+  originNote        String?           @map("origin_note")
+  report            Json? // { columns: [{ name, type, value }] }
+  outputs           Json // { photo: [], aerial: [], ground: [], monthly_video: [] }
+  createdAt         DateTime          @default(now()) @map("created_at")
+  updatedAt         DateTime          @updatedAt @map("updated_at")
+
+  project Project       @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  phase   ProjectPhase?
+
+  // يدوي: externalProjectId فاضي، فالقيم الفاضية ما بتتعارضش (أكتر من يدوي لنفس الشهر)
+  // coloridea: سجل واحد لكل مشروع ColorIdea + شهر
+  @@unique([projectId, month, externalProjectId])
+  @@index([projectId, month])
+  @@map("project_monthly_data")
+}
+
+
+
+model ProjectPhase {
+  id            Int      @id @default(autoincrement())
+  projectId     Int      @map("project_id")
+  monthlyDataId Int      @unique @map("monthly_data_id")
+    coverImage    String   @map("cover_image")
+  isLatest      Boolean  @default(false) @map("is_latest")
+  sortOrder     Int      @default(0) @map("sort_order")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  project     Project            @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  monthlyData ProjectMonthlyData @relation(fields: [monthlyDataId], references: [id], onDelete: NoAction)
+
+  @@index([projectId])
+  @@map("project_phases")
+}
+
+
+
+// التايم لابس: بيتبدل بالكامل عند كل مزامنة
+model ProjectTimelapseItem {
+  id                Int       @id @default(autoincrement())
+  projectId         Int       @map("project_id")
+  externalProjectId String    @map("external_project_id")
+  externalItemId    String    @map("external_item_id")
+  name              String
+  link              String?   @db.Text
+  photo             String?   @db.Text
+  date              DateTime?
+  createdAt         DateTime  @default(now()) @map("created_at")
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, externalItemId])
+  @@index([projectId])
+  @@map("project_timelapse_items")
+}

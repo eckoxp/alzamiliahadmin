@@ -1,0 +1,80 @@
+.editor {
+  container-type: inline-size;
+  margin-block-end: 24px;
+  overflow: clip;
+  background: #fbf7f3;
+  border: 1px solid #e6d6ca;
+  border-radius: 18px;
+}
+.header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 19px 22px;
+  background: #36231f;
+  color: #fffaf6;
+}
+.header h2 { margin: 0; color: inherit; font-size: 20px; font-weight: 700; }
+.header p { margin: 5px 0 0; font-size: 13px; color: #ecdbcf; }
+.close {
+  display: grid;
+  place-items: center;
+  width: 33px;
+  height: 33px;
+  border-radius: 50%;
+  border: 1px solid #ffffff55;
+  background: #ffffff12;
+  color: white;
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+}
+.form {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  padding: 20px;
+}
+.card {
+  min-inline-size: 0;
+  margin: 0;
+  padding: 12px 16px 16px;
+  border: 1px solid #e8dcd3;
+  border-radius: 14px;
+  background: #fff;
+}
+.card legend { padding-inline: 8px; color: #36231f; font-size: 14px; font-weight: 700; }
+.full, .actions { grid-column: 1 / -1; }
+.fields, .essentials { display: grid; gap: 13px; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.essentials { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.card :is(input:not([type="file"]), select) { min-height: 40px; border-color: #e0d3ca; border-radius: 8px; }
+.preview, .note {
+  margin: 13px 0 0;
+  padding: 8px 11px;
+  background: #f7ede5;
+  border-radius: 8px;
+  color: #533b31;
+  font-size: 12px;
+}
+.preview { display: flex; gap: 10px; flex-wrap: wrap; }
+.status { display: flex; flex-wrap: wrap; align-items: center; gap: 7px; margin-top: 13px; }
+.status strong { margin-inline-end: 4px; color: #533b31; font-size: 13px; }
+.actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 9px;
+  border-top: 1px solid #e8dcd3;
+  padding-top: 13px;
+}
+.actions p { margin: 0; margin-inline-end: auto; color: #6d554b; font-size: 12px; }
+@container (max-width: 730px) {
+  .form { grid-template-columns: minmax(0, 1fr); }
+}
+@container (max-width: 445px) {
+  .header, .form { padding: 13px; }
+  .card { padding-inline: 10px; }
+  .essentials { grid-template-columns: minmax(0, 1fr); }
+}

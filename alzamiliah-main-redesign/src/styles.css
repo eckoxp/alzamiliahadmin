@@ -1,0 +1,66 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+@layer utilities {
+    @keyframes fadeDown {
+        0% {
+            opacity: 0;
+            transform: translateY(-1rem);
+        }
+
+        100% {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .animate-fadeDown {
+        animation: fadeDown 0.5s ease-out forwards;
+    }
+}
+body {
+  @apply font-NotoKufi;
+    background-size: cover;
+  background-position: center center;
+  background-repeat: no-repeat;
+  background-attachment: fixed; /* تأثير جميل يجعل الخلفية ثابتة أثناء التمرير */
+    transition: background-image 0.8s ease-in-out;
+
+}
+
+
+.bg-banner {
+  @apply bg-cover bg-center h-96;
+  background-image: linear-gradient(rgb(6, 25, 51,0.6), rgb(6, 25, 51,0.6)), url('/images/banner.webp');
+}
+/* تعريف الأنيميشن */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px); /* ابدأ مزاحًا للأسفل 30 بكسل */
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* الكلاس الذي سيتم إضافته لتشغيل الأنيميشن */
+.animate-fade-in-up {
+  animation-name: fadeInUp;
+  animation-duration: 0.7s; /* مدة الأنيميشن */
+  animation-fill-mode: both; /* يحافظ على الحالة النهائية للأنيميشن */
+  animation-timing-function: ease-out; /* نوع حركة الأنيميشن */
+}
+
+/* يمكنك إضافة أنيميشنات أخرى بنفس الطريقة */
+@keyframes fadeInRight {
+  from { opacity: 0; transform: translateX(-30px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+.animate-fade-in-right {
+  animation-name: fadeInRight;
+  animation-duration: 0.7s;
+  animation-fill-mode: both;
+  animation-timing-function: ease-out;
+}

@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#282624">
+  <title>الزاملية | لوحة التحكم</title>
+  <link rel="stylesheet" href="style.css">
+  <script defer src="app.js"></script>
+</head>
+<body>
+  <a class="skip" href="#main-content">انتقل إلى المحتوى</a>
+  <button class="scrim" id="scrim" aria-label="إغلاق القائمة" hidden></button>
+  <aside class="sidebar" id="sidebar">
+    <a class="brand" href="#home" aria-label="الزاملية، لوحة التحكم">
+      <img src="assets/logo-white.png" alt="الزاملية">
+      <span>لوحة الإدارة</span>
+    </a>
+    <nav id="navigation" aria-label="أقسام الإدارة"></nav>
+    <div class="sidebar-footer"><span class="status-dot"></span> معاينة محلية للواجهة</div>
+  </aside>
+  <div class="workspace">
+    <header class="topbar">
+      <div class="top-start">
+        <button id="toggle" class="icon-button" aria-label="طي القائمة الجانبية" aria-controls="sidebar" aria-expanded="true"></button>
+        <span class="crumb">مساحة الإدارة <span>/</span> <strong id="crumb">نظرة عامة</strong></span>
+      </div>
+      <a class="button light" href="https://staging.tiseasa.com/ar" target="_blank" rel="noopener" id="site">عرض الموقع</a>
+    </header>
+    <main id="main-content" tabindex="-1"></main>
+    <footer>الزاملية للتطوير والاستثمار العقاري <span>معاينة الواجهة · 2026</span></footer>
+  </div>
+</body>
+</html>

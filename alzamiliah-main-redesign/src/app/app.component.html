@@ -1,0 +1,9 @@
+@if (isLoading$ | async) {
+  <app-loading-spinner></app-loading-spinner>
+}
+
+<app-navbar  class="fixed top-0 z-50 w-full" ></app-navbar>
+
+<router-outlet></router-outlet>
+
+<app-footer></app-footer>   

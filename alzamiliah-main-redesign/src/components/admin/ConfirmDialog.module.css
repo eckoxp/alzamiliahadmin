@@ -1,0 +1,162 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(17, 24, 39, 0.55);
+  z-index: 1200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  overflow-y: auto;
+}
+.dialog {
+  background: #fff;
+  border-radius: 16px;
+  width: 100%;
+  max-width: 460px;
+  padding: 26px 26px 22px;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.32);
+  text-align: center;
+  animation: pop 0.16s ease-out;
+}
+@keyframes pop {
+  from {
+    transform: scale(0.96);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+.icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  margin: 0 auto 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  font-weight: 800;
+}
+.info {
+  background: #f2e2d6;
+  color: #6a4535;
+}
+.warning {
+  background: #fef3c7;
+  color: #b45309;
+}
+.danger {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+.title {
+  font-size: 18px;
+  font-weight: 800;
+  color: #111827;
+  margin: 0 0 8px;
+}
+.body {
+  font-size: 14px;
+  line-height: 1.7;
+  color: #4b5563;
+  text-align: start;
+}
+.lead {
+  margin: 0 0 12px;
+  text-align: center;
+}
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.item {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  padding: 9px 12px;
+  border-radius: 10px;
+  background: #f9fafb;
+  font-size: 13px;
+  line-height: 1.6;
+  color: #374151;
+}
+.mark {
+  flex: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 800;
+  margin-top: 1px;
+}
+.keep .mark {
+  background: #dcfce7;
+  color: #166534;
+}
+.stop .mark {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+.note .mark {
+  background: #e5e7eb;
+  color: #4b5563;
+}
+.foot {
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+}
+.btn {
+  flex: 1;
+  padding: 10px 16px;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  font-size: 14px;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+.cancel {
+  background: #fff;
+  color: #374151;
+  border-color: #d1d5db;
+}
+.cancel:hover:not(:disabled) {
+  background: #f9fafb;
+}
+.confirmInfo {
+  background: #111827;
+  color: #fff;
+}
+.confirmInfo:hover:not(:disabled) {
+  background: #000;
+}
+.confirmWarning {
+  background: #bc8664;
+  color: #fff;
+}
+.confirmWarning:hover:not(:disabled) {
+  background: #805641;
+}
+.confirmDanger {
+  background: #dc2626;
+  color: #fff;
+}
+.confirmDanger:hover:not(:disabled) {
+  background: #b91c1c;
+}

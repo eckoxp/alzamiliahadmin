@@ -1,0 +1,164 @@
+// Prisma Schema for Alzamiliah Website
+// Database: Neon PostgreSQL
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  password  String
+  name      String
+  role      String   @default("admin")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("users")
+}
+
+model Project {
+  id              Int           @id @default(autoincrement())
+  nameAr          String        @map("name_ar")
+  nameEn          String?       @map("name_en")
+  type            String?
+  descriptionAr   String?       @map("description_ar") @db.Text
+  descriptionEn   String?       @map("description_en") @db.Text
+  excerptAr       String?       @map("excerpt_ar") @db.Text
+  excerptEn       String?       @map("excerpt_en") @db.Text
+  image           String?
+  image2          String?
+  image3          String?
+  image4          String?
+  image5          String?
+  image6          String?
+  buildingsCount  Int?          @map("buildings_count")
+  unitsCount      Int?          @map("units_count")
+  elevatorsCount  Int?          @map("elevators_count")
+  sortOrder       Int           @default(0) @map("sort_order")
+  locationAr      String?       @map("location_ar")
+  locationEn      String?       @map("location_en")
+  address         String?
+  linkLocation    String?       @map("link_location")
+  linkProject     String?       @map("link_project")
+  linkMap         String?       @map("link_map")
+  videoLink       String?       @map("video_link")
+  livePreview     String?       @map("live_preview")
+  city            String?
+  lat             Float?
+  lng             Float?
+  status          Int           @default(1)
+  statusApartment Int           @default(1) @map("status_apartment")
+  availability    Int           @default(1)
+  isFeatured      Int           @default(0) @map("is_featured")
+  elec            Int           @default(0)
+  devices         Int           @default(0)
+  elevator        Int           @default(0)
+  air             Int           @default(0)
+  plumber         Int           @default(0)
+  house           Int           @default(0)
+  highQuality     Int           @default(0) @map("high_quality")
+  smartEntry      Int           @default(0) @map("smart_entry")
+  fireSensor      Int           @default(0) @map("fire_sensor")
+  icon3d          String?       @map("icon_3d")
+  iconFollow      String?       @map("icon_follow")
+  buildYear       String?       @map("build_year")
+  sqFit           String?       @map("sq_fit")
+  projectFile     String?       @map("project_file")
+  projectFile2    String?       @map("project_file2")
+  projectFile3    String?       @map("project_file3")
+  video           String?
+  apartments      Apartment[]
+  galleryImages   ProjectImage[]
+  createdAt       DateTime      @default(now()) @map("created_at")
+  updatedAt       DateTime      @updatedAt @map("updated_at")
+
+  @@map("projects")
+}
+
+model Apartment {
+  id              Int      @id @default(autoincrement())
+  project         Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  projectId       Int      @map("project_id")
+  nameAr          String   @map("name_ar")
+  nameEn          String?  @map("name_en")
+  buildingName    String?  @map("building_name")
+  floor           Int?
+  area            Float?
+  bedrooms        Int?
+  bathrooms       Int?
+  price           Float?
+  status          String   @default("available")
+  type            String?  @default("A")
+  apartmentNumber Int?     @map("apartment_number")
+  image           String?
+  livingRoom      Int?     @default(0) @map("living_room")
+  kitchen         Int?     @default(0)
+  driverRoom      Int?     @default(0) @map("driver_room")
+  maidRoom        Int?     @default(0) @map("maid_room")
+  balcony         Int?     @default(0)
+  parking         Int?     @default(0)
+  cars            Int?     @default(0)
+  garden          Int?     @default(0)
+  entrance        Int?     @default(0)
+  majlis          Int?     @default(0)
+  storage         Int?     @default(0)
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  @@map("apartments")
+}
+
+model ContactRequest {
+  id        Int      @id @default(autoincrement())
+  name      String
+  email     String
+  phone     String?
+  message   String   @db.Text
+  projectId Int?     @map("project_id")
+  status    String   @default("new")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("contact_requests")
+}
+
+model Visitor {
+  id        Int      @id @default(autoincrement())
+  ip        String?
+  country   String?
+  city      String?
+  userAgent String?  @map("user_agent")
+  page      String?
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("visitors")
+}
+
+model ProjectImage {
+  id        Int     @id @default(autoincrement())
+  projectId Int     @map("project_id")
+  url       String
+  sortOrder Int     @default(0) @map("sort_order")
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@map("project_images")
+}
+
+model ContentPage {
+  id        Int      @id @default(autoincrement())
+  slug      String   @unique
+  titleAr   String   @map("title_ar")
+  titleEn   String   @map("title_en")
+  contentAr String   @map("content_ar") @db.Text
+  contentEn String   @map("content_en") @db.Text
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("content_pages")
+}
+
