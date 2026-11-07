@@ -135,3 +135,25 @@
 }
 
 .alz-stat-icon { display: grid; place-items: center; width: 43px; height: 43px; flex: none; border-radius: 13px; color: #694537; background: #efdfd2; }
+.alz-workspace input[type="file"] {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 12px;
+  line-height: 1.6;
+}
+.alz-workspace input[type="file"]::file-selector-button {
+  max-width: 100%;
+  margin: 0;
+  margin-inline-end: 8px;
+  padding: 6px 10px;
+  border: 1px solid #ddc5b5;
+  border-radius: 7px;
+  background: #f3e6db;
+  color: #36231f;
+  font: inherit;
+  cursor: pointer;
+}
