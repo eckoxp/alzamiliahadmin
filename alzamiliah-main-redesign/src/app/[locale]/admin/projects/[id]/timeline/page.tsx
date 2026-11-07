@@ -11,6 +11,7 @@ import {
   useState,
 } from "react";
 import Link from "next/link";
+import { Milestone, CalendarDays, Files } from "lucide-react";
 import { useLocale } from "next-intl";
 import s from "./timeline.module.css";
 
@@ -35,6 +36,7 @@ interface Column {
   name: string;
   type: ColType;
   value: number | string | null;
+  valueEn?: string | null;
 }
 interface Item {
   id?: string;
@@ -85,8 +87,11 @@ interface Draft {
   originNote: string;
   numbers: NumRow[];
   notes: string;
+  notesEn: string;
   reading: string;
+  readingEn: string;
   upcoming: string;
+  upcomingEn: string;
   extraTexts: { name: string; value: string }[]; // other text columns of an older record: kept as they are
   video: MediaRow;
   ground: MediaRow[];
@@ -144,8 +149,11 @@ const emptyDraft = (): Draft => ({
   originNote: "",
   numbers: presetNumbers(),
   notes: "",
+  notesEn: "",
   reading: "",
+  readingEn: "",
   upcoming: "",
+  upcomingEn: "",
   extraTexts: [],
   video: blankMedia(),
   ground: [],
@@ -259,8 +267,11 @@ function draftFromRecord(r: Phase["monthlyData"]): Draft {
     originNote: r.originNote ?? "",
     numbers: numbers.length ? numbers : presetNumbers(),
     notes: textOf(NOTES_NAME),
+    notesEn: cols.find((c) => c.type === "text" && c.name.trim() === NOTES_NAME)?.valueEn ?? "",
     reading: textOf(READING_NAME),
+    readingEn: cols.find((c) => c.type === "text" && c.name.trim() === READING_NAME)?.valueEn ?? "",
     upcoming: textOf(UPCOMING_NAME),
+    upcomingEn: cols.find((c) => c.type === "text" && c.name.trim() === UPCOMING_NAME)?.valueEn ?? "",
     extraTexts: cols
       .filter((c) => c.type === "text" && !ENGINEERING_NAMES.includes(c.name.trim()))
       .map((c) => ({ name: c.name, value: String(c.value ?? "") })),
@@ -300,8 +311,11 @@ function analyze(d: Draft, t: TFn) {
   // engineering report (all optional)
   (
     [
+      [d.notesEn, t("ملاحظات (إنجليزي)", "Notes (English)")],
       [d.notes, t("الملاحظات", "Notes")],
+      [d.readingEn, t("قراءة الإنجاز (إنجليزي)", "Reading (English)")],
       [d.reading, t("قراءة الإنجاز", "Progress reading")],
+      [d.upcomingEn, t("المراحل القادمة (إنجليزي)", "Upcoming (English)")],
       [d.upcoming, t("المراحل القادمة", "Upcoming phases")],
     ] as const
   ).forEach(([v, label]) => {
@@ -331,12 +345,12 @@ function analyze(d: Draft, t: TFn) {
   });
 
   const item = (r: MediaRow) => ({ name: r.name.trim() || null, link: r.link.trim(), photo: r.photo.trim() || null });
-  const text = (name: string, v: string) => (v.trim() ? [{ name, type: "text" as ColType, value: v.trim() }] : []);
-  const columns: { name: string; type: ColType; value: number | string }[] = [
+  const text = (name: string, v: string, valueEn = "") => (v.trim() || valueEn.trim() ? [{ name, type: "text" as ColType, value: v.trim(), valueEn: valueEn.trim() || null }] : []);
+  const columns: { name: string; type: ColType; value: number | string; valueEn?: string | null }[] = [
     ...nums.map((c) => ({ name: c.name.trim(), type: c.type as ColType, value: Number(c.value) })),
-    ...text(NOTES_NAME, d.notes),
-    ...text(READING_NAME, d.reading),
-    ...text(UPCOMING_NAME, d.upcoming),
+    ...text(NOTES_NAME, d.notes, d.notesEn),
+    ...text(READING_NAME, d.reading, d.readingEn),
+    ...text(UPCOMING_NAME, d.upcoming, d.upcomingEn),
     ...d.extraTexts.flatMap((x) => text(x.name.trim(), x.value)),
   ];
 
@@ -353,7 +367,7 @@ function analyze(d: Draft, t: TFn) {
 
   const counts = {
     percents,
-    engineering: [d.notes, d.reading, d.upcoming].filter((v) => v.trim()).length,
+    engineering: [[d.notes, d.notesEn], [d.reading, d.readingEn], [d.upcoming, d.upcomingEn]].filter((pair) => pair.some((v) => v.trim())).length,
     video: rowFilled(d.video) ? 1 : 0,
     ground: payload.ground.length,
     aerial: payload.aerial.length,
@@ -962,18 +976,22 @@ function ManualForm({
                 ["upcoming", t("المراحل القادمة المتوقعة", "Expected upcoming phases")],
               ] as const
             ).map(([key, label]) => (
-              <div key={key} style={{ marginBottom: 12 }}>
-                <label className={s.label}>{label}</label>
-                <textarea
-                  className={s.textarea}
-                  rows={4}
-                  value={d[key]}
-                  onChange={(e) => setD((p) => ({ ...p, [key]: e.target.value }))}
-                />
-                <div className={s.coverHint}>
-                  {d[key].trim().length}/{MAX_TEXT}
-                </div>
-              </div>
+              <fieldset key={key} className={s.reportLanguages}>
+                <legend>{label}</legend>
+                {(["ar", "en"] as const).map((language) => {
+                  const field = language === "ar" ? key : `${key}En` as "notesEn" | "readingEn" | "upcomingEn";
+                  const id = `report-${field}`;
+                  return (
+                    <div key={language}>
+                      <label className={s.label} htmlFor={id}>{language === "ar" ? t("العربية", "Arabic") : t("الإنجليزية", "English")}</label>
+                      <textarea id={id} className={s.textarea} rows={4} dir={language === "ar" ? "rtl" : "ltr"} lang={language}
+                        value={d[field]} maxLength={MAX_TEXT}
+                        onChange={(e) => setD((previous) => ({ ...previous, [field]: e.target.value }))} />
+                      <div className={s.coverHint}>{d[field].trim().length}/{MAX_TEXT}</div>
+                    </div>
+                  );
+                })}
+              </fieldset>
             ))}
           </div>
         )}
@@ -1511,16 +1529,19 @@ export default function ProjectTimelinePage({ params }: { params: Promise<{ id: 
 
         <div className={s.stats}>
           <div className={s.stat}>
-            <div className={s.statNum}>{phases.length}</div>
-            <div className={s.statLabel}>{t("مراحل", "Phases")}</div>
+            <div><div className={s.statNum}>{phases.length}</div>
+            <div className={s.statLabel}>{t("مراحل", "Phases")}</div></div>
+            <span className={s.statIcon}><Milestone size={22} strokeWidth={1.6} aria-hidden="true" /></span>
           </div>
           <div className={s.stat}>
-            <div className={s.statNum}>{records.length}</div>
-            <div className={s.statLabel}>{t("سجلات شهرية", "Monthly records")}</div>
+            <div><div className={s.statNum}>{records.length}</div>
+            <div className={s.statLabel}>{t("سجلات شهرية", "Monthly records")}</div></div>
+            <span className={s.statIcon}><CalendarDays size={22} strokeWidth={1.6} aria-hidden="true" /></span>
           </div>
           <div className={s.stat}>
-            <div className={s.statNum}>{freeRecords.length}</div>
-            <div className={s.statLabel}>{t("سجلات غير مستخدمة", "Unused records")}</div>
+            <div><div className={s.statNum}>{freeRecords.length}</div>
+            <div className={s.statLabel}>{t("سجلات غير مستخدمة", "Unused records")}</div></div>
+            <span className={s.statIcon}><Files size={22} strokeWidth={1.6} aria-hidden="true" /></span>
           </div>
         </div>
 

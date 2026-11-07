@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useLocale } from 'next-intl';
+import RequestDialog, { requestStyles as detail } from '@/components/admin/RequestDialog';
 
 interface Project {
     id: number;
@@ -34,6 +35,8 @@ export default function AdminQrLeadsPage() {
 
     const [leads, setLeads] = useState<Lead[]>([]);
     const [loading, setLoading] = useState(true);
+    const [actionBusy, setActionBusy] = useState(false);
+    const [actionError, setActionError] = useState("");
     const [selected, setSelected] = useState<Lead | null>(null);
     const [filter, setFilter] = useState<'all' | 'new' | 'contacted' | 'closed'>('all');
 
@@ -47,24 +50,44 @@ export default function AdminQrLeadsPage() {
     useEffect(() => { loadLeads(); }, []);
 
     const updateStatus = async (id: number, status: string) => {
-        await fetch('/api/admin/qrcode-leads', {
+        if (actionBusy) return;
+        setActionBusy(true);
+        setActionError("");
+        try {
+            const response = await fetch('/api/admin/qrcode-leads', {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ id, status }),
-        });
-        setLeads(prev => prev.map(l => l.id === id ? { ...l, status } : l));
-        if (selected?.id === id) setSelected(prev => prev ? { ...prev, status } : null);
+            });
+            if (!response.ok) throw new Error("Request failed");
+            setLeads(prev => prev.map(l => l.id === id ? { ...l, status } : l));
+            if (selected?.id === id) setSelected(prev => prev?.id === id ? { ...prev, status } : prev);
+        } catch {
+            setActionError(isRTL ? "تعذّر حفظ التغيير. حاول مرة أخرى." : "Could not save the change. Try again.");
+        } finally {
+            setActionBusy(false);
+        }
     };
 
     const deleteLead = async (id: number) => {
         if (!confirm(isRTL ? 'هل أنت متأكد من حذف هذا الطلب؟' : 'Delete this lead?')) return;
-        await fetch('/api/admin/qrcode-leads', {
+        if (actionBusy) return;
+        setActionBusy(true);
+        setActionError("");
+        try {
+            const response = await fetch('/api/admin/qrcode-leads', {
             method: 'DELETE',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ id }),
-        });
-        setLeads(prev => prev.filter(l => l.id !== id));
-        if (selected?.id === id) setSelected(null);
+            });
+            if (!response.ok) throw new Error("Request failed");
+            setLeads(prev => prev.filter(l => l.id !== id));
+            setSelected(previous => previous?.id === id ? null : previous);
+        } catch {
+            setActionError(isRTL ? "تعذّر حفظ التغيير. حاول مرة أخرى." : "Could not save the change. Try again.");
+        } finally {
+            setActionBusy(false);
+        }
     };
 
     const filtered = filter === 'all' ? leads : leads.filter(l => l.status === filter);
@@ -145,7 +168,8 @@ export default function AdminQrLeadsPage() {
                 })}
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: selected ? '1fr 380px' : '1fr', gap: '20px', alignItems: 'start' }}>
+            {actionError && !selected && <p className={detail.error} role="alert">{actionError}</p>}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '20px', alignItems: 'start' }}>
 
                 {/* Table */}
                 <div className="admin-card" style={{ overflow: 'auto' }}>
@@ -169,12 +193,15 @@ export default function AdminQrLeadsPage() {
                                 return (
                                     <tr
                                         key={lead.id}
-                                        onClick={() => setSelected(lead)}
+                                        onClick={() => { setActionError(""); setSelected(lead); }}
                                         style={{ cursor: 'pointer', background: selected?.id === lead.id ? '#faf8f5' : undefined }}
                                     >
                                         <td style={{ color: '#9ca3af', fontSize: '12px' }}>{lead.id}</td>
                                         <td>
-                                            <strong style={{ fontSize: '14px' }}>{lead.name}</strong>
+                                            <button type="button" className="admin-btn-icon" aria-haspopup="dialog"
+                                                onClick={(event) => { event.stopPropagation(); setActionError(""); setSelected(lead); }}>
+                                                <strong style={{ fontSize: '14px' }}>{lead.name}</strong>
+                                            </button>
                                             {lead.status === 'new' && (
                                                 <span style={{
                                                     marginRight: isRTL ? '6px' : 0, marginLeft: isRTL ? 0 : '6px',
@@ -251,168 +278,38 @@ export default function AdminQrLeadsPage() {
                     </table>
                 </div>
 
-                {/* Detail panel */}
                 {selected && (
-                    <div className="admin-card" style={{ padding: '24px', position: 'sticky', top: '20px' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-                            <h3 style={{ margin: 0, fontSize: '15px', fontWeight: 700 }}>
-                                {isRTL ? 'تفاصيل الطلب' : 'Lead Details'}
-                            </h3>
-                            <button onClick={() => setSelected(null)}
-                                style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '18px', color: '#9ca3af' }}>✕</button>
-                        </div>
-
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-
-                            {/* Name */}
-                            <div>
-                                <div style={{ fontSize: '11px', color: '#9ca3af', marginBottom: '3px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                                    {isRTL ? 'الاسم' : 'Name'}
-                                </div>
-                                <div style={{ fontSize: '16px', fontWeight: 700 }}>{selected.name}</div>
+                    <RequestDialog title={isRTL ? 'تفاصيل طلب QR' : 'QR request details'}
+                        id={selected.id} name={selected.name} email={selected.email} phone={selected.phone}
+                        date={selected.createdAt} status={isRTL ? statusStyle(selected.status).label.ar : statusStyle(selected.status).label.en}
+                        onClose={() => setSelected(null)} error={actionError}
+                        actions={<>
+                            {selected.status !== 'contacted' && <button disabled={actionBusy} onClick={() => updateStatus(selected.id, 'contacted')} className="admin-btn admin-btn-primary">{isRTL ? 'تم التواصل' : 'Mark contacted'}</button>}
+                            {selected.status !== 'closed' && <button disabled={actionBusy} onClick={() => updateStatus(selected.id, 'closed')} className="admin-btn">{isRTL ? 'إغلاق الطلب' : 'Close request'}</button>}
+                            {selected.status !== 'new' && <button disabled={actionBusy} onClick={() => updateStatus(selected.id, 'new')} className="admin-btn">{isRTL ? 'إعادة فتح' : 'Reopen'}</button>}
+                            <button disabled={actionBusy} onClick={() => deleteLead(selected.id)} className={`admin-btn ${detail.delete}`}>{isRTL ? 'حذف الطلب' : 'Delete request'}</button>
+                        </>}>
+                        <section className={detail.section}>
+                            <h3>{isRTL ? 'طريقة التواصل المفضلة' : 'Preferred contact method'}</h3>
+                            <div className={detail.method}>
+                                {isRTL ? CONTACT_METHOD_LABELS[selected.contactMethod].ar : CONTACT_METHOD_LABELS[selected.contactMethod].en}
+                                {selected.contactMethod === 'WHATSAPP' && (
+                                    <a href={`https://wa.me/${selected.phone.replace(/[^0-9]/g, '')}`} target="_blank" rel="noopener noreferrer">{isRTL ? 'فتح واتساب' : 'Open WhatsApp'}</a>
+                                )}
                             </div>
-
-                            {/* Phone */}
-                            <div>
-                                <div style={{ fontSize: '11px', color: '#9ca3af', marginBottom: '3px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                                    {isRTL ? 'رقم الهاتف' : 'Phone'}
-                                </div>
-                                <a href={`tel:${selected.phone}`} dir="ltr"
-                                    style={{ fontSize: '15px', fontWeight: 600, color: '#6a4535', textDecoration: 'none' }}>
-                                    {selected.phone}
-                                </a>
-                            </div>
-
-                            {/* Contact method */}
-                            <div>
-                                <div style={{ fontSize: '11px', color: '#9ca3af', marginBottom: '6px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                                    {isRTL ? 'طريقة التواصل المفضلة' : 'Preferred Contact'}
-                                </div>
-                                {(() => {
-                                    const cm = CONTACT_METHOD_LABELS[selected.contactMethod];
-                                    return (
-                                        <span style={{
-                                            display: 'inline-flex', alignItems: 'center', gap: '6px',
-                                            padding: '6px 14px', borderRadius: '8px',
-                                            background: `${cm.color}15`, color: cm.color,
-                                            fontWeight: 700, fontSize: '13px',
-                                        }}>
-                                            {selected.contactMethod === 'WHATSAPP' && (
-                                                <a
-                                                    href={`https://wa.me/${selected.phone.replace(/[\s\-+]/g, '')}`}
-                                                    target="_blank" rel="noopener noreferrer"
-                                                    onClick={e => e.stopPropagation()}
-                                                    style={{ color: 'inherit', textDecoration: 'none' }}
-                                                >
-                                                    {isRTL ? cm.ar : cm.en} ↗
-                                                </a>
-                                            )}
-                                            {selected.contactMethod !== 'WHATSAPP' && (isRTL ? cm.ar : cm.en)}
-                                        </span>
-                                    );
-                                })()}
-                            </div>
-
-                            {/* Email */}
-                            {selected.email && (
-                                <div>
-                                    <div style={{ fontSize: '11px', color: '#9ca3af', marginBottom: '3px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                                        {isRTL ? 'البريد الإلكتروني' : 'Email'}
-                                    </div>
-                                    <a href={`mailto:${selected.email}`}
-                                        style={{ fontSize: '13px', color: '#6a4535', textDecoration: 'none' }}>
-                                        {selected.email}
-                                    </a>
-                                </div>
-                            )}
-
-                            {/* Projects */}
-                            <div>
-                                <div style={{ fontSize: '11px', color: '#9ca3af', marginBottom: '8px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                                    {isRTL ? 'المشاريع المطلوبة' : 'Requested Projects'}
-                                </div>
-                                {selected.projects.length === 0
-                                    ? <span style={{ fontSize: '13px', color: '#9ca3af' }}>{isRTL ? 'لم يحدد مشروعاً' : 'No project selected'}</span>
-                                    : (
-                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                                            {selected.projects.map(p => (
-                                                <div key={p.project.id} style={{
-                                                    padding: '10px 14px', borderRadius: '8px',
-                                                    background: 'rgba(92,58,33,0.06)', border: '1px solid rgba(92,58,33,0.1)',
-                                                }}>
-                                                    <div style={{ fontWeight: 700, fontSize: '13px', color: '#5c3a21' }}>
-                                                        {isRTL ? p.project.nameAr : p.project.nameEn || p.project.nameAr}
-                                                    </div>
-                                                    {(isRTL ? p.project.locationAr : p.project.locationEn || p.project.locationAr) && (
-                                                        <div style={{ fontSize: '11px', color: '#9ca3af', marginTop: '2px' }}>
-                                                            {isRTL ? p.project.locationAr : p.project.locationEn || p.project.locationAr}
-                                                        </div>
-                                                    )}
-                                                </div>
-                                            ))}
-                                        </div>
-                                    )
-                                }
-                            </div>
-
-                            {/* Date */}
-                            <div>
-                                <div style={{ fontSize: '11px', color: '#9ca3af', marginBottom: '3px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                                    {isRTL ? 'تاريخ الطلب' : 'Submitted'}
-                                </div>
-                                <div style={{ fontSize: '13px', color: '#374151' }}>
-                                    {new Date(selected.createdAt).toLocaleString(isRTL ? 'ar-SA' : 'en-US', {
-                                        year: 'numeric', month: 'long', day: 'numeric',
-                                        hour: '2-digit', minute: '2-digit',
-                                    })}
-                                </div>
-                            </div>
-
-                            {/* Status actions */}
-                            <div style={{ borderTop: '1px solid #f3f4f6', paddingTop: '16px' }}>
-                                <div style={{ fontSize: '11px', color: '#9ca3af', marginBottom: '10px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                                    {isRTL ? 'تحديث الحالة' : 'Update Status'}
-                                </div>
-                                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                                    {selected.status !== 'contacted' && (
-                                        <button
-                                            onClick={() => updateStatus(selected.id, 'contacted')}
-                                            className="admin-btn admin-btn-primary"
-                                            style={{ fontSize: '12px', padding: '7px 14px' }}
-                                        >
-                                            {isRTL ? '✓ تم التواصل' : '✓ Mark Contacted'}
-                                        </button>
-                                    )}
-                                    {selected.status !== 'closed' && (
-                                        <button
-                                            onClick={() => updateStatus(selected.id, 'closed')}
-                                            className="admin-btn"
-                                            style={{ fontSize: '12px', padding: '7px 14px', background: '#f3f4f6', color: '#374151' }}
-                                        >
-                                            {isRTL ? 'إغلاق' : 'Close'}
-                                        </button>
-                                    )}
-                                    {selected.status !== 'new' && (
-                                        <button
-                                            onClick={() => updateStatus(selected.id, 'new')}
-                                            className="admin-btn"
-                                            style={{ fontSize: '12px', padding: '7px 14px', background: '#f8eee7', color: '#6a4535' }}
-                                        >
-                                            {isRTL ? 'إعادة فتح' : 'Reopen'}
-                                        </button>
-                                    )}
-                                </div>
-                            </div>
-
-                            <button
-                                onClick={() => deleteLead(selected.id)}
-                                className="admin-btn"
-                                style={{ fontSize: '12px', padding: '7px 14px', background: '#fee2e2', color: '#991b1b', marginTop: '4px' }}
-                            >
-                                {isRTL ? 'حذف الطلب' : 'Delete Lead'}
-                            </button>
-                        </div>
-                    </div>
+                        </section>
+                        <section className={detail.section}>
+                            <h3>{isRTL ? 'المشاريع المطلوبة' : 'Requested projects'}</h3>
+                            {selected.projects.length ? (
+                                <ul className={detail.projects}>{selected.projects.map(({ project }) => (
+                                    <li key={project.id} className={detail.project}>
+                                        <strong>{isRTL ? project.nameAr : project.nameEn || project.nameAr}</strong>
+                                        <span>{isRTL ? project.locationAr : project.locationEn || project.locationAr}</span>
+                                    </li>
+                                ))}</ul>
+                            ) : <p>{isRTL ? 'لم يحدد مشروعًا' : 'No project selected'}</p>}
+                        </section>
+                    </RequestDialog>
                 )}
             </div>
         </div>

@@ -249,7 +249,12 @@ export default function PhaseDetail({ data }: { data: PublicPhase }) {
   const updated = dateLabel(phase.updatedAt, isRTL);
   const projectHref = `/${locale}/projects/${project.id}`;
 
-  const hasReport = !!(phase.notes || phase.reading || phase.upcoming || phase.extraTexts.length);
+  const report = {
+    notes: isRTL ? phase.notes : phase.notesEn || phase.notes,
+    reading: isRTL ? phase.reading : phase.readingEn || phase.reading,
+    upcoming: isRTL ? phase.upcoming : phase.upcomingEn || phase.upcoming,
+  };
+  const hasReport = !!(report.notes || report.reading || report.upcoming || phase.extraTexts.length);
   const hasOverview = phase.total !== null || phase.metrics.length > 0 || phase.numbers.length > 0;
 
   // only sections that really have data (they also feed the side menu)
@@ -330,31 +335,31 @@ export default function PhaseDetail({ data }: { data: PublicPhase }) {
             {hasReport && (
               <section className={s.card} id="report">
                 <h2>{t.engReport}</h2>
-                {phase.notes && (
+                {report.notes && (
                   <div className={s.reportPart}>
                     <h3>
                       <Icon d={icons.tools} />
                       {t.notes}
                     </h3>
-                    <p>{phase.notes}</p>
+                    <p>{report.notes}</p>
                   </div>
                 )}
-                {phase.reading && (
+                {report.reading && (
                   <div className={s.reportPart}>
                     <h3>
                       <Icon d={icons.chart} />
                       {t.reading}
                     </h3>
-                    <p>{phase.reading}</p>
+                    <p>{report.reading}</p>
                   </div>
                 )}
-                {phase.upcoming && (
+                {report.upcoming && (
                   <div className={s.reportPart}>
                     <h3>
                       <Icon d={icons.roadmap} />
                       {t.upcoming}
                     </h3>
-                    <p>{phase.upcoming}</p>
+                    <p>{report.upcoming}</p>
                   </div>
                 )}
                 {phase.extraTexts.map((x) => (

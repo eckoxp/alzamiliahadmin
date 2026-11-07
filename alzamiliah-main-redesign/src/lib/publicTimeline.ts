@@ -32,8 +32,11 @@ export interface PhaseDetail extends PhaseCard {
   updatedAt: string;
   numbers: PhaseMetric[]; // columns of type "number"
   notes: string | null;
+  notesEn: string | null;
   reading: string | null;
+  readingEn: string | null;
   upcoming: string | null;
+  upcomingEn: string | null;
   extraTexts: { name: string; value: string }[];
   monthlyVideo: MediaView | null; // the FIRST playable one
   aerial: MediaItem[];
@@ -62,6 +65,7 @@ interface Column {
   name: string;
   type: string;
   value: unknown;
+  valueEn: unknown;
 }
 
 function columnsOf(report: unknown): Column[] {
@@ -69,7 +73,7 @@ function columnsOf(report: unknown): Column[] {
   if (!Array.isArray(cols)) return [];
   return cols
     .filter((c): c is Record<string, unknown> => !!c && typeof c === 'object')
-    .map((c) => ({ name: typeof c.name === 'string' ? c.name.trim() : '', type: String(c.type ?? ''), value: c.value }))
+    .map((c) => ({ name: typeof c.name === 'string' ? c.name.trim() : '', type: String(c.type ?? ''), value: c.value, valueEn: c.valueEn }))
     .filter((c) => c.name);
 }
 
@@ -93,8 +97,11 @@ function shapeReport(report: unknown) {
   const metrics: PhaseMetric[] = [];
   const numbers: PhaseMetric[] = [];
   let notes: string | null = null;
+  let notesEn: string | null = null;
   let reading: string | null = null;
+  let readingEn: string | null = null;
   let upcoming: string | null = null;
+  let upcomingEn: string | null = null;
   const extraTexts: { name: string; value: string }[] = [];
 
   for (const c of cols) {
@@ -110,14 +117,15 @@ function shapeReport(report: unknown) {
       }
     } else if (c.type === 'text') {
       const text = typeof c.value === 'string' ? c.value.trim() : '';
-      if (!text) continue;
-      if (notes === null && n.includes('ملاحظ')) notes = text;
-      else if (reading === null && n.includes('قراءه')) reading = text;
-      else if (upcoming === null && n.includes('القادمه')) upcoming = text;
+      const english = typeof c.valueEn === 'string' ? c.valueEn.trim() || null : null;
+      if (!text && !english) continue;
+      if (notes === null && n.includes('ملاحظ')) { notes = text || null; notesEn = english; }
+      else if (reading === null && n.includes('قراءه')) { reading = text || null; readingEn = english; }
+      else if (upcoming === null && n.includes('القادمه')) { upcoming = text || null; upcomingEn = english; }
       else extraTexts.push({ name: c.name, value: text });
     }
   }
-  return { total, metrics, numbers, notes, reading, upcoming, extraTexts };
+  return { total, metrics, numbers, notes, reading, upcoming, notesEn, readingEn, upcomingEn, extraTexts };
 }
 
 /* ---------- outputs parsing ---------- */
@@ -221,8 +229,11 @@ export async function getPublicPhase(projectId: number, phaseId: number): Promis
     updatedAt: row.monthlyData.updatedAt.toISOString(),
     numbers: shaped.numbers,
     notes: shaped.notes,
+    notesEn: shaped.notesEn,
     reading: shaped.reading,
+    readingEn: shaped.readingEn,
     upcoming: shaped.upcoming,
+    upcomingEn: shaped.upcomingEn,
     extraTexts: shaped.extraTexts,
     monthlyVideo: firstPlayable(o, 'monthly_video'),
     aerial: gallery(o, 'aerial'),

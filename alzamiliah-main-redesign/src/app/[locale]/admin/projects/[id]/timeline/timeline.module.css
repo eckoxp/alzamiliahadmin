@@ -35,7 +35,11 @@
   border-radius: 10px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
   padding: 14px 18px;
-  border-inline-start: 4px solid #bc8664;
+  border: 1px solid #e8d8cc;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
 }
 .statNum {
   font-size: 24px;
@@ -1044,3 +1048,18 @@
 .mediaFile { flex: 1 1 160px; min-width: 0; overflow-wrap: anywhere; color: #36231f; font-size: 13px; }
 .mediaFile a { color: inherit; text-decoration: underline; text-underline-offset: 3px; }
 .mediaErrors { color: #842525; padding-inline-start: 22px; font-size: 13px; overflow-wrap: anywhere; }
+.reportLanguages {
+  min-inline-size: 0;
+  margin: 0 0 15px;
+  padding: 12px;
+  border: 1px solid #e9dbd0;
+  border-radius: 11px;
+  background: #fcf8f5;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0,1fr));
+  gap: 12px;
+}
+.reportLanguages legend { padding-inline: 7px; color: #36231f; font-size: 14px; font-weight: 600; }
+@media (max-width: 620px) { .reportLanguages { grid-template-columns: minmax(0,1fr); } }
+
+.statIcon { display: grid; place-items: center; width: 43px; height: 43px; flex: none; border-radius: 13px; color: #694537; background: #efdfd2; }

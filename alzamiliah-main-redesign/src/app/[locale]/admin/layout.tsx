@@ -5,7 +5,7 @@ import { useRouter, usePathname } from 'next/navigation';
 import { useLocale } from 'next-intl';
 import Image from 'next/image';
 import Link from 'next/link';
-import { LayoutDashboard, Building2, SquarePlus, House, Inbox, QrCode, ChartNoAxesColumn, Megaphone, FileText, PanelRight, Languages, ExternalLink, LogOut } from 'lucide-react';
+import { LayoutDashboard, Building2, SquarePlus, House, Inbox, QrCode, ChartNoAxesColumn, FileText, PanelRight, Languages, ExternalLink, LogOut } from 'lucide-react';
 import './workspace.css';
 
 const groups = [
@@ -28,7 +28,6 @@ const groups = [
         ar: 'الموقع والإعدادات', en: 'Site & Settings',
         items: [
             { path: '/statistics', icon: ChartNoAxesColumn, ar: 'إحصائيات الموقع', en: 'Site Statistics' },
-            { path: '/promotion', icon: Megaphone, ar: 'ترويج للموقع', en: 'Site Promotion' },
             { path: '/content', icon: FileText, ar: 'سياسات وخصوصية', en: 'Policies & Privacy' },
         ],
     },

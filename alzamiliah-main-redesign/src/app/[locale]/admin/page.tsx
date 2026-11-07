@@ -3,7 +3,7 @@
 import { useEffect, useState, useRef } from 'react';
 import { useLocale } from 'next-intl';
 import Link from 'next/link';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Building2, Mail, MessageSquare, Users } from 'lucide-react';
 import Chart from 'chart.js/auto';
 
 interface Stats {
@@ -94,10 +94,10 @@ export default function AdminDashboardPage() {
 
     const year = stats?.year ?? new Date().getFullYear();
     const statCards = [
-        { label: isRTL ? 'عدد المشاريع' : 'Projects', value: stats?.projects_count, color: '#36231f' },
-        { label: isRTL ? 'طلبات التواصل' : 'Contact Requests', value: stats?.contact_count, color: '#bc8664' },
-        { label: isRTL ? 'استفسارات الوحدات' : 'Unit Inquiries', value: stats?.inquiries_count, color: '#805641' },
-        { label: isRTL ? `إجمالي الزوار (${year})` : `Total Visitors (${year})`, value: stats?.total_visitors, color: '#bc8664' },
+        { label: isRTL ? 'عدد المشاريع' : 'Projects', value: stats?.projects_count, icon: Building2 },
+        { label: isRTL ? 'طلبات التواصل' : 'Contact Requests', value: stats?.contact_count, icon: Mail },
+        { label: isRTL ? 'استفسارات الوحدات' : 'Unit Inquiries', value: stats?.inquiries_count, icon: MessageSquare },
+        { label: isRTL ? `إجمالي الزوار (${year})` : `Total Visitors (${year})`, value: stats?.total_visitors, icon: Users },
     ];
 
     const quickLinks = [
@@ -124,9 +124,10 @@ export default function AdminDashboardPage() {
             {/* Stats Grid */}
             <div className="admin-stats-grid">
                 {statCards.map((card, i) => (
-                    <div key={i} className="admin-stat-card" style={{ borderInlineStartColor: card.color }}>
-                        <div className="label">{card.label}</div>
-                        <div className="value">{card.value ?? '-'}</div>
+                    <div key={i} className="admin-stat-card">
+                        <div><div className="label">{card.label}</div>
+                        <div className="value">{card.value ?? '-'}</div></div>
+                        <span className="alz-stat-icon"><card.icon size={22} strokeWidth={1.6} aria-hidden="true" /></span>
                     </div>
                 ))}
             </div>

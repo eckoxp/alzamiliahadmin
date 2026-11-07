@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useRef } from 'react';
 import { useLocale } from 'next-intl';
+import { Users, MapPin, ChartNoAxesColumn } from 'lucide-react';
 import Chart from 'chart.js/auto';
 import 'flag-icons/css/flag-icons.min.css';
 
@@ -245,24 +246,24 @@ export default function StatisticsPage() {
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px', marginBottom: '28px' }}>
                 {[
                     {
-                        icon: '👥', labelAr: 'إجمالي الزوار', labelEn: 'Total Visitors',
+                        icon: Users, labelAr: 'إجمالي الزوار', labelEn: 'Total Visitors',
                         value: stats?.total_visitors?.toLocaleString() || '-',
                         bg: '#f8eee7', iconBg: '#f0e0d3', color: '#694537',
                     },
                     {
-                        icon: '🇸🇦', labelAr: 'زوار السعودية', labelEn: 'Saudi Visitors',
+                        icon: MapPin, labelAr: 'زوار السعودية', labelEn: 'Saudi Visitors',
                         value: stats?.saudi_visitors?.toLocaleString() || '-',
                         bg: '#f3e7de', iconBg: '#e8cebc', color: '#694537',
                     },
                     {
-                        icon: '📊', labelAr: 'هذا الشهر', labelEn: 'This Month',
+                        icon: ChartNoAxesColumn, labelAr: 'هذا الشهر', labelEn: 'This Month',
                         value: stats?.current_month_visitors?.toLocaleString() || '-',
                         bg: '#f2e2d6', iconBg: '#e8cebc', color: '#805641',
                     },
                 ].map((card, i) => (
                     <div key={i} className="admin-card" style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
                         <div style={{ width: '48px', height: '48px', borderRadius: '12px', background: card.iconBg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '24px' }}>
-                            {card.icon}
+                            <card.icon size={23} strokeWidth={1.6} color={card.color} aria-hidden="true" />
                         </div>
                         <div>
                             <div style={{ fontSize: '13px', color: '#6b7280' }}>{isRTL ? card.labelAr : card.labelEn}</div>

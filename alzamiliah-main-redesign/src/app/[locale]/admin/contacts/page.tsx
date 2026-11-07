@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useLocale } from 'next-intl';
+import RequestDialog, { requestStyles as detail } from '@/components/admin/RequestDialog';
 
 interface ContactRequest {
     id: number;
@@ -19,6 +20,8 @@ export default function AdminContactsPage() {
     const isRTL = locale === 'ar';
     const [contacts, setContacts] = useState<ContactRequest[]>([]);
     const [loading, setLoading] = useState(true);
+    const [actionBusy, setActionBusy] = useState(false);
+    const [actionError, setActionError] = useState("");
     const [selectedContact, setSelectedContact] = useState<ContactRequest | null>(null);
 
     const loadContacts = () => {
@@ -34,24 +37,44 @@ export default function AdminContactsPage() {
     useEffect(() => { loadContacts(); }, []);
 
     const markAsReviewed = async (id: number) => {
-        await fetch('/api/admin/contacts', {
+        if (actionBusy) return;
+        setActionBusy(true);
+        setActionError("");
+        try {
+            const response = await fetch('/api/admin/contacts', {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ id, status: 'reviewed' }),
-        });
-        setContacts(prev => prev.map(c => c.id === id ? { ...c, status: 'reviewed' } : c));
-        if (selectedContact?.id === id) setSelectedContact(prev => prev ? { ...prev, status: 'reviewed' } : null);
+            });
+            if (!response.ok) throw new Error("Request failed");
+            setContacts(prev => prev.map(c => c.id === id ? { ...c, status: 'reviewed' } : c));
+            if (selectedContact?.id === id) setSelectedContact(prev => prev?.id === id ? { ...prev, status: 'reviewed' } : prev);
+        } catch {
+            setActionError(isRTL ? "تعذّر حفظ التغيير. حاول مرة أخرى." : "Could not save the change. Try again.");
+        } finally {
+            setActionBusy(false);
+        }
     };
 
     const deleteContact = async (id: number) => {
         if (!confirm(isRTL ? 'هل أنت متأكد من حذف هذا الطلب؟' : 'Are you sure you want to delete this request?')) return;
-        await fetch('/api/admin/contacts', {
+        if (actionBusy) return;
+        setActionBusy(true);
+        setActionError("");
+        try {
+            const response = await fetch('/api/admin/contacts', {
             method: 'DELETE',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ id }),
-        });
-        setContacts(prev => prev.filter(c => c.id !== id));
-        if (selectedContact?.id === id) setSelectedContact(null);
+            });
+            if (!response.ok) throw new Error("Request failed");
+            setContacts(prev => prev.filter(c => c.id !== id));
+            setSelectedContact(previous => previous?.id === id ? null : previous);
+        } catch {
+            setActionError(isRTL ? "تعذّر حفظ التغيير. حاول مرة أخرى." : "Could not save the change. Try again.");
+        } finally {
+            setActionBusy(false);
+        }
     };
 
     if (loading) {
@@ -64,7 +87,8 @@ export default function AdminContactsPage() {
                 {isRTL ? 'طلبات التواصل' : 'Contact Requests'}
             </h1>
 
-            <div style={{ display: 'grid', gridTemplateColumns: selectedContact ? '1fr 1fr' : '1fr', gap: '20px' }}>
+            {actionError && !selectedContact && <p className={detail.error} role="alert">{actionError}</p>}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '20px' }}>
                 {/* Table */}
                 <div className="admin-card" style={{ overflow: 'auto' }}>
                     <table className="admin-table">
@@ -83,14 +107,14 @@ export default function AdminContactsPage() {
                             {contacts.map(c => (
                                 <tr
                                     key={c.id}
-                                    onClick={() => setSelectedContact(c)}
+                                    onClick={() => { setActionError(""); setSelectedContact(c); }}
                                     style={{
                                         cursor: 'pointer',
                                         background: selectedContact?.id === c.id ? '#f3f4f6' : undefined,
                                     }}
                                 >
                                     <td>{c.id}</td>
-                                    <td><strong>{c.name}</strong></td>
+                                    <td><button className="admin-btn-icon" aria-haspopup="dialog" onClick={(event) => { event.stopPropagation(); setActionError(""); setSelectedContact(c); }}><strong>{c.name}</strong></button></td>
                                     <td style={{ fontSize: '13px' }}>{c.email}</td>
                                     <td style={{ fontSize: '13px' }}>{c.phone || '-'}</td>
                                     <td>
@@ -129,96 +153,27 @@ export default function AdminContactsPage() {
                     </table>
                 </div>
 
-                {/* Detail Panel */}
                 {selectedContact && (
-                    <div className="admin-card" style={{ padding: '24px', position: 'sticky', top: '20px', alignSelf: 'start' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-                            <h3 style={{ margin: 0, fontSize: '16px' }}>
-                                {isRTL ? 'تفاصيل الرسالة' : 'Message Details'}
-                            </h3>
-                            <button
-                                onClick={() => setSelectedContact(null)}
-                                style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '18px', color: '#999' }}
-                            >
-                                ✕
-                            </button>
-                        </div>
-
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                            {/* Name */}
-                            <div>
-                                <div style={{ fontSize: '12px', color: '#9ca3af', marginBottom: '4px' }}>{isRTL ? 'الاسم' : 'Name'}</div>
-                                <div style={{ fontSize: '15px', fontWeight: 600 }}>{selectedContact.name}</div>
-                            </div>
-
-                            {/* Email */}
-                            <div>
-                                <div style={{ fontSize: '12px', color: '#9ca3af', marginBottom: '4px' }}>{isRTL ? 'البريد الإلكتروني' : 'Email'}</div>
-                                <a href={`mailto:${selectedContact.email}`} style={{ fontSize: '14px', color: '#694537' }}>{selectedContact.email}</a>
-                            </div>
-
-                            {/* Phone */}
-                            {selectedContact.phone && (
-                                <div>
-                                    <div style={{ fontSize: '12px', color: '#9ca3af', marginBottom: '4px' }}>{isRTL ? 'رقم الهاتف' : 'Phone'}</div>
-                                    <a href={`tel:${selectedContact.phone}`} style={{ fontSize: '14px', color: '#694537' }}>{selectedContact.phone}</a>
-                                </div>
-                            )}
-
-                            {/* Date */}
-                            <div>
-                                <div style={{ fontSize: '12px', color: '#9ca3af', marginBottom: '4px' }}>{isRTL ? 'التاريخ' : 'Date'}</div>
-                                <div style={{ fontSize: '14px' }}>
-                                    {new Date(selectedContact.createdAt).toLocaleString(isRTL ? 'ar-SA' : 'en-US', {
-                                        year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit',
-                                    })}
-                                </div>
-                            </div>
-
-                            {/* Status */}
-                            <div>
-                                <div style={{ fontSize: '12px', color: '#9ca3af', marginBottom: '4px' }}>{isRTL ? 'الحالة' : 'Status'}</div>
-                                <span style={{
-                                    padding: '4px 12px', borderRadius: '5px', fontSize: '13px', fontWeight: 600,
-                                    background: selectedContact.status === 'new' ? '#f8eee7' : '#e8f5e9',
-                                    color: selectedContact.status === 'new' ? '#694537' : '#2e7d32',
-                                }}>
-                                    {selectedContact.status === 'new' ? (isRTL ? 'جديد' : 'New') : (isRTL ? 'تمت المراجعة' : 'Reviewed')}
-                                </span>
-                            </div>
-
-                            {/* Message */}
-                            <div>
-                                <div style={{ fontSize: '12px', color: '#9ca3af', marginBottom: '4px' }}>{isRTL ? 'الرسالة' : 'Message'}</div>
-                                <div style={{
-                                    fontSize: '14px', lineHeight: 1.7, padding: '14px', borderRadius: '8px',
-                                    background: '#f9fafb', border: '1px solid #e5e7eb', whiteSpace: 'pre-wrap',
-                                }}>
-                                    {selectedContact.message}
-                                </div>
-                            </div>
-
-                            {/* Actions */}
-                            <div style={{ display: 'flex', gap: '10px', marginTop: '8px' }}>
-                                {selectedContact.status === 'new' && (
-                                    <button
-                                        onClick={() => markAsReviewed(selectedContact.id)}
-                                        className="admin-btn admin-btn-primary"
-                                        style={{ fontSize: '13px', padding: '8px 20px' }}
-                                    >
-                                        {isRTL ? '✓ تم المراجعة' : '✓ Mark Reviewed'}
-                                    </button>
-                                )}
-                                <button
-                                    onClick={() => deleteContact(selectedContact.id)}
-                                    className="admin-btn"
-                                    style={{ fontSize: '13px', padding: '8px 20px', background: '#fee2e2', color: '#991b1b' }}
-                                >
-                                    {isRTL ? 'حذف' : 'Delete'}
+                    <RequestDialog title={isRTL ? 'تفاصيل الرسالة' : 'Message details'}
+                        id={selectedContact.id} name={selectedContact.name} email={selectedContact.email}
+                        phone={selectedContact.phone} date={selectedContact.createdAt}
+                        status={selectedContact.status === 'new' ? (isRTL ? 'جديد' : 'New') : (isRTL ? 'تمت المراجعة' : 'Reviewed')}
+                        onClose={() => setSelectedContact(null)} error={actionError}
+                        actions={<>
+                            {selectedContact.status === 'new' && (
+                                <button disabled={actionBusy} onClick={() => markAsReviewed(selectedContact.id)} className="admin-btn admin-btn-primary">
+                                    {isRTL ? 'تمت المراجعة' : 'Mark reviewed'}
                                 </button>
-                            </div>
-                        </div>
-                    </div>
+                            )}
+                            <button disabled={actionBusy} onClick={() => deleteContact(selectedContact.id)} className={`admin-btn ${detail.delete}`}>
+                                {isRTL ? 'حذف الطلب' : 'Delete request'}
+                            </button>
+                        </>}>
+                        <section className={detail.section}>
+                            <h3>{isRTL ? 'الرسالة' : 'Message'}</h3>
+                            <div className={detail.message} dir="auto">{selectedContact.message}</div>
+                        </section>
+                    </RequestDialog>
                 )}
             </div>
         </div>

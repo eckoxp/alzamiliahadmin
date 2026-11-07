@@ -32,6 +32,7 @@ export interface ManualColumnInput {
   name: string;
   type: ColumnType;
   value: number | string;
+  valueEn?: string | null;
 }
 export interface ManualMediaInput {
   name: string | null;
@@ -184,8 +185,13 @@ export function parseManualInput(raw: unknown): ManualMonthlyInput {
     }
     const type = col.type as ColumnType;
 
-    if (type === 'text')
-      return { name, type, value: cleanText(col.value, 2000, `قيمة ${label}`) };
+    if (type === 'text') {
+      const value = typeof col.value === 'string' ? col.value.trim() : '';
+      const valueEn = typeof col.valueEn === 'string' ? col.valueEn.trim() : '';
+      if (!value && !valueEn) throw new TimelineError(`قيمة ${label} مطلوبة`);
+      if (value.length > 2000 || valueEn.length > 2000) throw new TimelineError(`قيمة ${label} أطول من 2000 حرف`);
+      return { name, type, value, valueEn: valueEn || null };
+    }
 
     const rawValue = typeof col.value === 'string' ? col.value.trim() : col.value;
     const n =
